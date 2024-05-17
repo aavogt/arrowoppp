@@ -1,0 +1,42 @@
+name: arrowoppp
+version: 0.1.0
+synopsis: A preprocessor for C like syntax with IORefs
+description: A preprocessor allowing x->y in expression contexts,
+  using the monadic-bang plugin.
+
+    > OPTIONS_GHC -F -pgmF arrowoppp -fplugin=MonadicBang
+
+    > data X = X { y "::" IORef Int }
+
+    > x->y           -- !(readIORef x).y "::" IORef Int
+
+                > *x->y          -- !(readIORef !(readIORef x).y) "::" Int
+
+    Only a single is supported with assignment
+
+    > do
+
+    >   let *x = z    -- x <- newIORef $ z
+
+    >   *x = y        -- writeIORef x y
+
+    >   *x <- y       -- writeIORef x =<< y
+license: BSD3
+
+dependencies:
+  - base
+  - regex-applicative
+  - containers
+  - hspec
+  - lens
+
+default-extensions:
+  - ViewPatterns
+  - ApplicativeDo
+  - LambdaCase
+  - RankNTypes
+  - KindSignatures
+     
+executable:
+  main:
+    main.hs

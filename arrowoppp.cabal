@@ -1,0 +1,40 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           arrowoppp
+version:        0.1.0
+synopsis:       A preprocessor for C like syntax with IORefs
+description:    A preprocessor allowing x->y in expression contexts, using the monadic-bang plugin.
+                > OPTIONS_GHC -F -pgmF arrowoppp -fplugin=MonadicBang
+                > data X = X { y "::" IORef Int }
+                > x->y           -- !(readIORef x).y "::" IORef Int
+                > *x->y          -- !(readIORef !(readIORef x).y) "::" Int
+                Only a single is supported with assignment
+                > do
+                >   let *x = z    -- x <- newIORef $ z
+                >   *x = y        -- writeIORef x y
+                >   *x <- y       -- writeIORef x =<< y
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+
+executable arrowoppp
+  main-is: main.hs
+  other-modules:
+      Paths_arrowoppp
+  default-extensions:
+      ViewPatterns
+      ApplicativeDo
+      LambdaCase
+      RankNTypes
+      KindSignatures
+  build-depends:
+      base
+    , containers
+    , hspec
+    , lens
+    , regex-applicative
+  default-language: Haskell2010
