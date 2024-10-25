@@ -19,8 +19,11 @@ main = do
   args@(~(originalName : input : output : (listToMaybe -> mPrefix))) <- getArgs
   unless (length args `elem` [3, 4]) $ do
     putStrLn
-      "Usage: arrowoppp originalName input output [alternateStarPrefix] \
-      \ {-# OPTIONS_GHC -F -pgmF arrowoppp -optF s -fplugin=MonadicBang #-}"
+      "Usage: arrowoppp originalName input output [alternateStarPrefix] \n\n\
+      \ If *x should be !(readIORef x) or writeIORef x:\n\
+      \ {-# OPTIONS_GHC -F -pgmF arrowoppp -fplugin=MonadicBang #-}\n\n\
+      \ For better compatibility with haskell-language-server, use a letter prefix such as v: \n\
+      \ {-# OPTIONS_GHC -F -pgmF arrowoppp -optF v -fplugin=MonadicBang #-}"
     exitFailure
   input <- readFile input
   let linePragma = "{-# LINE 1 " ++ show originalName ++ " #-}\n"
