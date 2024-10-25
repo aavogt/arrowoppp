@@ -20,6 +20,7 @@ description:    A preprocessor allowing *x and x->y for IORefs using the monadic
                 It is also possible to supply an additional argument to arrowoppp with the -optF, which allows using a different prefix instead of *. That is,
                 > OPTIONS_GHC -F -pgmF arrowoppp -optF v -fplugin=MonadicBang
                 will let you write vx instead of *x, and this is more friendly to haskell-language-server, hlint etc., but it is more confusing and there might not be a short prefix available.
+                To run the tests `ghcid -Ttest`
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple

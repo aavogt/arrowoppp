@@ -31,6 +31,8 @@ description: A preprocessor allowing *x and x->y for IORefs
     friendly to haskell-language-server, hlint etc., but it is more confusing
     and there might not be a short prefix available.
 
+    To run the tests `ghcid -Ttest`
+
 license: BSD3
 
 dependencies:
