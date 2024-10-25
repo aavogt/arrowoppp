@@ -29,42 +29,47 @@ main = do
 
 item input output = it input $ p input s0 `shouldBe` output
 
-test = hspec $ do
-  let itemId input = item input input
-  describe "lowercase variables" $ do
-    item "x * y" "x * y"
-    item "x *y" "x !(readIORef y)"
-    item " *x->y" " !(readIORef !(readIORef x).y)"
-    item " *x" " !(readIORef x)"
-    item " *x->y" " !(readIORef !(readIORef x).y)"
-    item " x->y" " !(readIORef x).y"
-    item " x->y->z" " !(readIORef !(readIORef x).y).z"
-    item "let w = 2 * pi * *sr.freq / 48000" "let w = 2 * pi * !(readIORef sr.freq) / 48000"
-    item "let w = *x\n-- x\nlet imax = round (48000 * (*sr.on + *sr.off) * fromIntegral n) `div` n" "let w = !(readIORef x)\n-- x\nlet imax = round (48000 * (!(readIORef sr.on) + !(readIORef sr.off)) * fromIntegral n) `div` n"
+itemId input = item input input
 
-  describe "ignores sigs" $ do
-    itemId "a :: x -> y"
-    itemId "a :: x->y"
-    itemId "a :: x -> y -> z"
-    itemId "do x :: a -> b <- y"
-  describe "ignores <*>" $ do
-    itemId "f <$> x <*> y"
-  describe "linear package operator" $ do
-    itemId "f *^ y"
-  describe "qual" $ do
-    item " X.e->Y.e" " !(readIORef X.e).Y.e"
-    item " X.e->e" " !(readIORef X.e).e"
-    item " e->Y.e" " !(readIORef e).Y.e"
-  describe "ident" $ do
-    it "stops" $ ident "X.y.e" `shouldBe` Just ("X.y", ".e")
-    it "goes" $ ident "X.y" `shouldBe` Just ("X.y", "")
-    it "caps" $ ident "X.Y" `shouldBe` Just ("X.Y", "")
-    it "stops2" $ ident "x.y" `shouldBe` Just ("x", ".y")
+test =
+  let ?star = "*"
+   in hspec $ do
+        let itemId input = item input input
+        describe "lowercase variables" $ do
+          item "x * y" "x * y"
+          item "x *y" "x !(readIORef y)"
+          item " *x->y" " !(readIORef !(readIORef x).y)"
+          item " *x" " !(readIORef x)"
+          item " *x->y" " !(readIORef !(readIORef x).y)"
+          item " x->y" " !(readIORef x).y"
+          item " x->y->z" " !(readIORef !(readIORef x).y).z"
+          item "let w = 2 * pi * *sr.freq / 48000" "let w = 2 * pi * !(readIORef sr.freq) / 48000"
+          item "let w = *x\n-- x\nlet imax = round (48000 * (*sr.on + *sr.off) * fromIntegral n) `div` n" "let w = !(readIORef x)\n-- x\nlet imax = round (48000 * (!(readIORef sr.on) + !(readIORef sr.off)) * fromIntegral n) `div` n"
 
-  describe "assignment" $ do
-    item "do *x <- y" "do writeIORef x =<< y"
-    item "do *x = y" "do writeIORef x $ y"
-    item "do let *x = y" "do x <- newIORef $ y"
+        describe "ignores sigs" $ do
+          itemId "a :: x -> y"
+          itemId "a :: x->y"
+          itemId "a :: x -> y -> z"
+          itemId "do x :: a -> b <- y"
+        describe "ignores <*>" $ do
+          itemId "f <$> x <*> y"
+        describe "linear package operator" $ do
+          itemId "f *^ y"
+        describe "qual" $ do
+          item " X.e->Y.e" " !(readIORef X.e).Y.e"
+          item " X.e->e" " !(readIORef X.e).e"
+          item " e->Y.e" " !(readIORef e).Y.e"
+        describe "ident" $ do
+          it "stops" $ ident "X.y.e" `shouldBe` Just ("X.y", ".e")
+          it "goes" $ ident "X.y" `shouldBe` Just ("X.y", "")
+          it "caps" $ ident "X.Y" `shouldBe` Just ("X.Y", "")
+          it "stops2" $ ident "x.y" `shouldBe` Just ("x", ".y")
+
+        describe "assignment" $ do
+          item "do *x <- y" "do writeIORef x =<< y"
+          item "do *x = y" "do writeIORef x $ y"
+          item "do let *x = y" "do x <- newIORef $ y"
+          itemId "do when (*x == 3) x"
 
 -- TODO: * -> .
 
