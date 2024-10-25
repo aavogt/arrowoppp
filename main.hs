@@ -69,7 +69,8 @@ test =
           item "do *x <- y" "do writeIORef x =<< y"
           item "do *x = y" "do writeIORef x $ y"
           item "do let *x = y" "do x <- newIORef $ y"
-          itemId "do when (*x == 3) x"
+          item "do when (*x == 3)" "do when (!(readIORef x) == 3)"
+          item "do *x=y" "do writeIORef x $ y"
 
 -- TODO: * -> .
 
@@ -148,7 +149,7 @@ pointerPat = findLongestPrefix $ do
   ~((n, a, ope), naope) <- withMatched pointerRE -- ApplicativeDo needs irrefutable patterns
   s <- many (psym isSpace)
   assignOp <- string "<-" <|> string "="
-  s2 <- many (psym isSpace)
+  s2 <- some (psym isSpace)
   pure $ case assignOp of
     "<-" | n == 1 -> Just ("writeIORef " <> a <> " =<< ")
     "=" | Just l <- letStr, n == 1 -> Just (a <> " <- newIORef $ ")
