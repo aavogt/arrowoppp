@@ -37,6 +37,9 @@ executable arrowoppp
       LambdaCase
       RankNTypes
       KindSignatures
+      PartialTypeSignatures
+      BlockArguments
+  ghc-options: -fno-warn-partial-type-signatures
   build-depends:
       base
     , containers

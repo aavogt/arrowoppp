@@ -69,11 +69,14 @@ test =
           it "stops2" $ ident "x.y" `shouldBe` Just ("x", ".y")
 
         describe "assignment" $ do
-          item "do *x <- y" "do writeIORef x =<< y"
-          item "do *x = y" "do writeIORef x $ y"
-          item "do let *x = y" "do x <- newIORef $ y"
+          item "do *x <- y" "do writeIORef x =<<  y"
+          item "do *x = y" "do writeIORef x $  y"
+          item "do let *x = y" "do x <- newIORef $  y"
           item "do when (*x == 3)" "do when (!(readIORef x) == 3)"
           item "do *x=y" "do writeIORef x $ y"
+          item "do *x==y" "do !(readIORef x)==y"
+          item "do (x, *y) = rhs" "do (x, _) <- _2 (writeIORef y) $ rhs"
+          item "do (x, *y) <- guiSpinner *y" "do (x, _) <- _2 (writeIORef y) =<< rhs"
 
 -- TODO: * -> .
 
@@ -147,17 +150,26 @@ pointerRE = do
   pure (star, maybe id (:) implicit var1, oprs)
 
 -- | the incomplete core of arrowoppp for patterns
-pointerPat = findLongestPrefix $ do
-  letStr <- optional $ (<>) (string "let") (many (psym isSpace))
-  ~((n, a, ope), naope) <- withMatched pointerRE -- ApplicativeDo needs irrefutable patterns
-  s <- many (psym isSpace)
-  assignOp <- string "<-" <|> string "="
-  s2 <- some (psym isSpace)
-  pure $ case assignOp of
-    "<-" | n == 1 -> Just ("writeIORef " <> a <> " =<< ")
-    "=" | Just l <- letStr, n == 1 -> Just (a <> " <- newIORef $ ")
-    "=" | n == 1 -> Just ("writeIORef " <> a <> " $ ")
-    _ -> Nothing
+pointerPat :: (_) => String -> Maybe (Maybe String, [Char])
+pointerPat =
+  pushBack . findLongestPrefix do
+    letStr <- optional $ (<>) (string "let") (many (psym isSpace))
+    ~((n, a, ope), naope) <- withMatched pointerRE -- ApplicativeDo needs irrefutable patterns
+    s <- many (psym isSpace)
+    assignOp <- string "<-" <|> string "="
+    s2 <- psym (not . isSymbol)
+    pure
+      ( case assignOp of
+          "<-" | n == 1 -> Just ("writeIORef " <> a <> " =<< ")
+          "=" | Just l <- letStr, n == 1 -> Just (a <> " <- newIORef $ ")
+          "=" | n == 1 -> Just ("writeIORef " <> a <> " $ ")
+          _ -> Nothing,
+        s2
+      )
+  where
+    -- there should be a better way to get a lookahead
+    pushBack (Just ((Just x, c), xs)) = Just (Just x, c : xs)
+    pushBack x = x & _Just . _1 %~ fst
 
 -- | the core of arrowoppp for expressions:
 --
